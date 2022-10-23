@@ -5,6 +5,8 @@ from telchurn.data_loader import DataLoader, DataLoaderImpl
 from telchurn.feature_processor import FeatureProcessor, FeatureProcessorImpl
 from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
 from telchurn.feature_selector import FeatureSelector, FeatureSelectorImpl
+from telchurn.pipeline_factory import PipelineFactory, PipelineFactoryImpl
+from telchurn.hyper_param_tunner import HyperParamTunner, HyperParamTunnerImpl
 from telchurn.trainer import Trainer, TrainerImpl
 import telchurn.util as util
 
@@ -20,16 +22,18 @@ class App:
     def run(self, input_file_or_url: str) -> None:
         self.trainer.train(input_file_or_url)
         
-def main(input_file: str):
+def main(input_file: str, seed: int, testsplit: float, kfolds: int):
     data_loader = DataLoaderImpl()
-    feature_processor = FeatureProcessorImpl()
-    feature_ranker = FeatureRankerImpl()
-    feature_selector = FeatureSelectorImpl(feature_ranker)
-    trainer = TrainerImpl(data_loader, feature_processor, feature_selector)
-    trainer.train(input_file)
+    pipeline_factory = PipelineFactoryImpl()
+    hp_tunner = HyperParamTunnerImpl(kfolds, seed)
+    trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner)
+    trainer.train(input_file, seed, testsplit, kfolds)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--seed',  type=int, help='random seed', default=Trainer.DEFAULT_RANDOM_STATE)
+    parser.add_argument('--testsplit',  type=float, help='test split percentage', default=Trainer.DEFAULT_TEST_PCT_SIZE)
+    parser.add_argument('--kfolds', type=int, help='number of k folds', default=HyperParamTunner.DEFAULT_K_FOLDS)
     parser.add_argument('input_file',  type=str, help='input file name')
     args = parser.parse_args()
-    main(args.input_file)
+    main(args.input_file, args.seed, args.testsplit, args.kfolds)
