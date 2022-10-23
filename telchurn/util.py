@@ -1,22 +1,20 @@
-import os
-import os.path
-import shutil
+import io
 import logging
 import datetime as dt
-import gzip
-import shutil
-import re
-import warnings
 
 LOGGER_FORMAT = '%(asctime)s:%(levelname)s:%(filename)s:%(funcName)s:%(lineno)d\n\t%(message)s\n'
 LOGGER_FORMAT = '%(levelname)s - %(filename)s:%(funcName)s:%(lineno)s - %(message)s'
 logging.basicConfig(level=logging.INFO, format=LOGGER_FORMAT)
 
-DATETIME_WITH_MS_REGEX = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\.\d{3}$")
-
 def get_logger(name):
     return logging.getLogger(name)
 
+def report_df(logger, df):
+    buffer = io.StringIO()
+    df.info(verbose=True, buf=buffer)
+    buffer.seek(0)
+    logger.info(buffer.read())
+        
 def shallow_equality_test(self, other, attrs):
     for attr in attrs:
         if not hasattr(self, attr) or not hasattr(other, attr):

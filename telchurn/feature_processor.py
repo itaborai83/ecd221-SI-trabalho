@@ -205,9 +205,10 @@ class FeatureProcessorImpl(FeatureProcessor):
         # reposiciona a variável target ao final
         churn_df["churn"] = churn_df.pop("churn")
         self.__report(churn_df)
-
+        return churn_df
+        
     def __report(self, churn_df: pd.DataFrame) -> None:
         buffer = io.StringIO()
         churn_df.info(verbose=True, buf=buffer)
         buffer.seek(0)
-        LOGGER.info(buffer.read())        
+        LOGGER.info(buffer.read())

@@ -3,6 +3,8 @@ import abc
 import argparse
 from telchurn.data_loader import DataLoader, DataLoaderImpl
 from telchurn.feature_processor import FeatureProcessor, FeatureProcessorImpl
+from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
+from telchurn.feature_selector import FeatureSelector, FeatureSelectorImpl
 from telchurn.trainer import Trainer, TrainerImpl
 import telchurn.util as util
 
@@ -21,7 +23,9 @@ class App:
 def main(input_file: str):
     data_loader = DataLoaderImpl()
     feature_processor = FeatureProcessorImpl()
-    trainer = TrainerImpl(data_loader, feature_processor)
+    feature_ranker = FeatureRankerImpl()
+    feature_selector = FeatureSelectorImpl(feature_ranker)
+    trainer = TrainerImpl(data_loader, feature_processor, feature_selector)
     trainer.train(input_file)
     
 if __name__ == '__main__':
