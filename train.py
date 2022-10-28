@@ -22,18 +22,19 @@ class App:
     def run(self, input_file_or_url: str) -> None:
         self.trainer.train(input_file_or_url)
         
-def main(input_file: str, seed: int, testsplit: float, kfolds: int):
+def main(input_file: str, seed: int, testsplit: float, kfolds: int, metric: str):
     data_loader = DataLoaderImpl()
     pipeline_factory = PipelineFactoryImpl()
     hp_tunner = HyperParamTunnerImpl(kfolds, seed)
     trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner)
-    trainer.train(input_file, seed, testsplit, kfolds)
+    trainer.train(input_file, seed, testsplit, kfolds, metric)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed',  type=int, help='random seed', default=Trainer.DEFAULT_RANDOM_STATE)
     parser.add_argument('--testsplit',  type=float, help='test split percentage', default=Trainer.DEFAULT_TEST_PCT_SIZE)
     parser.add_argument('--kfolds', type=int, help='number of k folds', default=HyperParamTunner.DEFAULT_K_FOLDS)
+    parser.add_argument('--metric', type=str, help='metric', default=HyperParamTunner.DEFAULT_METRIC)
     parser.add_argument('input_file',  type=str, help='input file name')
     args = parser.parse_args()
-    main(args.input_file, args.seed, args.testsplit, args.kfolds)
+    main(args.input_file, args.seed, args.testsplit, args.kfolds, args.metric)

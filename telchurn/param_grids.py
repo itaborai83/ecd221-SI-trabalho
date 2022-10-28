@@ -72,7 +72,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__class_weight"      : ["balanced"],
         }]
         return [{
-            "name"          : "reglog"
+            "name"          : "REGLOG"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -92,7 +92,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__weights"           : ["uniform", "distance"]
             }]
         return [{
-            "name"          : "knn"
+            "name"          : "KNN"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -107,7 +107,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__var_smoothing"     : [1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
         }]    
         return [{
-            "name"          : "nb"
+            "name"          : "NB"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -125,7 +125,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__max_features"      : [None, "auto", "sqrt", "log2"],
         }]
         return [{
-            "name"          : "dt"
+            "name"          : "DT"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -142,7 +142,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__class_weight"      : ["balanced"],
         }]
         return [{
-            "name"          : "svm"
+            "name"          : "SVM"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -158,7 +158,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__learning_rate"       : [0.001, 0.01, 0.1, 1.0]
         }]
         return [{
-            "name"          : "ada"
+            "name"          : "ADA"
         ,   "iterations"    : 1000
         ,   "param_grid"    : param_grid
         }]
@@ -177,7 +177,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__max_features"        : [None, "sqrt", "log2"]
         }]
         return [{
-            "name"          : "ada"
+            "name"          : "GB"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]
@@ -196,7 +196,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__class_weight"        : ["balanced", "balanced_subsample"],
         }]
         return [{
-            "name"          : "rf"
+            "name"          : "RF"
         ,   "iterations"    : 200
         ,   "param_grid"    : param_grid
         }]

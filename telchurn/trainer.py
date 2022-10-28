@@ -3,6 +3,7 @@ import abc
 import pandas as pd
 from typing import Tuple, List
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import RandomizedSearchCV
 import telchurn.util as util
 from telchurn.data_loader import DataLoader
 from telchurn.pipeline_factory import PipelineFactory
@@ -32,13 +33,26 @@ class TrainerImpl(abc.ABC):
     def get_param_grids(self):
         return ParamGridsImpl().get_parameter_grids()
     
-    def train(self, input_file: str, seed: int, test_split_pct: float, k_folds: float) -> None:
+    def train(self, input_file: str, seed: int, test_split_pct: float, k_folds: float, metric: str) -> None:
         LOGGER.info('starting telco churn model training')
         churn_df = self.data_loader.load_cleansed(input_file)
         util.report_df(LOGGER, churn_df)
         pipeline = self.pipeline_factory.build_pipeline_for(churn_df)
         X_train_df, X_test_df, y_train_df, y_test_df = self.__train_test_split(churn_df, seed, test_split_pct)
-        param_grids = self.get_param_grids()
+        param_grids = param_grids = self.get_param_grids()
+        for param_grid in param_grids:
+            name        = param_grid["name"]
+            iterations  = param_grid["iterations"]
+            grid        = param_grid["param_grid"]
+            rand_search_cv, train_df = self.hp_tunner.tune(
+                pipeline        = pipeline
+            ,   param_grid      = grid
+            ,   grid_name       = name
+            ,   num_iterations  = iterations
+            ,   scoring_metric  = metric
+            ,   X_train_df      = X_train_df
+            ,   y_train_df      = y_train_df
+            )
         
     def __train_test_split(self, churn_df, seed: int, test_split_pct: float) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         LOGGER.info('splitting data set into train and test sets')
@@ -59,6 +73,4 @@ class TrainerImpl(abc.ABC):
         y_train_df = pd.DataFrame(y_train, columns=[self.TARGET_VARIABLE])
         y_test_df = pd.DataFrame(y_test, columns=[self.TARGET_VARIABLE])
         return X_train_df, X_test_df, y_train_df, y_test_df
-        
 
-        
