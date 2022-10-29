@@ -4,8 +4,6 @@ import pandas as pd
 import telchurn.util as util
 from typing import List, Dict
 
-LOGGER = util.get_logger('param_grids')
-
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, PolynomialFeatures
 from sklearn.feature_selection import RFECV
 from sklearn.model_selection import train_test_split
@@ -24,12 +22,21 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
-from sklearn.ensemble import BaggingClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.ensemble import VotingClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+
+LOGGER = util.get_logger('param_grids')
+
+QUICK_RUN   = False
+USE_LOGREG = True
+USE_KNN     = True
+USE_NB      = True
+USE_DT      = False # True
+USE_SVM     = False # True
+USE_ADA     = False # True
+USE_GB      = False # True
+USE_RF      = False # True
 
 class ParamGrids(abc.ABC):
     
@@ -41,17 +48,17 @@ class ParamGridsImpl(abc.ABC):
     
     def get_parameter_grids(self) -> List:
         return []                   \
-        +   self.get_logreg_grid()  \
-        +   self.get_knn_grid()     \
-        +   self.get_nb_grid()      \
-        +   self.get_dt_grid()      \
-        +   self.get_svm_grid()     \
-        +   self.get_ada_grid()     \
-        +   self.get_gb_grid()      \
-        +   self.get_rf_grid()
+        +   (self.get_logreg_grid() if USE_LOGREG else []) \
+        +   (self.get_knn_grid()    if USE_KNN else []) \
+        +   (self.get_nb_grid()     if USE_NB  else []) \
+        +   (self.get_dt_grid()     if USE_DT  else []) \
+        +   (self.get_svm_grid()    if USE_SVM else []) \
+        +   (self.get_ada_grid()    if USE_ADA else []) \
+        +   (self.get_gb_grid()     if USE_GB  else []) \
+        +   (self.get_rf_grid()     if USE_RF  else [])
         
     def get_logreg_grid(self):
-        LOGGER.info('creating parameter grids for logistic Regression - logreg')
+        LOGGER.info('creating parameter grids for logistic Regression - LOGREG')
         param_grid = [{
             # Logistic Regression
             "feature_scaling__num__scaler"  : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -72,13 +79,13 @@ class ParamGridsImpl(abc.ABC):
             "classifier__class_weight"      : ["balanced"],
         }]
         return [{
-            "name"          : "REGLOG"
-        ,   "iterations"    : 200
+            "name"          : "LOGREG"
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
     
     def get_knn_grid(self):
-        LOGGER.info('creating parameter grids for K Nearest Neighbors - knn')
+        LOGGER.info('creating parameter grids for K Nearest Neighbors - KNN')
         param_grid = [{
             # KNeighborsClassifier
             "feature_scaling__num__scaler"  : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -93,7 +100,7 @@ class ParamGridsImpl(abc.ABC):
             }]
         return [{
             "name"          : "KNN"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
     
@@ -108,12 +115,12 @@ class ParamGridsImpl(abc.ABC):
         }]    
         return [{
             "name"          : "NB"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
    
     def get_dt_grid(self):
-        LOGGER.info('creating parameter grids for Decision Tree - dt')
+        LOGGER.info('creating parameter grids for Decision Tree - DT')
         param_grid = [{
             # DecisionTreeClassifier{
             "feature_scaling__num__scaler"  : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -126,12 +133,12 @@ class ParamGridsImpl(abc.ABC):
         }]
         return [{
             "name"          : "DT"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
 
     def get_svm_grid(self):
-        LOGGER.info('creating parameter grids for Suport Vector Machine classifier - svm')
+        LOGGER.info('creating parameter grids for Suport Vector Machine classifier - SVM')
         param_grid = param_grid = [{
             # SVC        
             "feature_scaling__num__scaler"  : [MinMaxScaler(), StandardScaler()], # SVC precisa ter os argumentos escalonados para uma melhor performance
@@ -143,12 +150,12 @@ class ParamGridsImpl(abc.ABC):
         }]
         return [{
             "name"          : "SVM"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
     
     def get_ada_grid(self):
-        LOGGER.info('creating parameter grids for AdaBoost classifier - ada')
+        LOGGER.info('creating parameter grids for AdaBoost classifier - ADA')
         param_grid = [{
         # AdaBoostClassifier
             "feature_scaling__num__scaler"    : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -159,12 +166,12 @@ class ParamGridsImpl(abc.ABC):
         }]
         return [{
             "name"          : "ADA"
-        ,   "iterations"    : 1000
+        ,   "iterations"    : (1000 if not QUICK_RUN else 100)
         ,   "param_grid"    : param_grid
         }]
 
     def get_gb_grid(self):
-        LOGGER.info('creating parameter grids for Gradient Boosting classifier - gb')
+        LOGGER.info('creating parameter grids for Gradient Boosting classifier - GB')
         param_grid = [{
             # GradientBoostingClassifier        
             "feature_scaling__num__scaler"    : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -178,12 +185,12 @@ class ParamGridsImpl(abc.ABC):
         }]
         return [{
             "name"          : "GB"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
         
     def get_rf_grid(self):
-        LOGGER.info('creating parameter grids for Random Forest classifier - rf')
+        LOGGER.info('creating parameter grids for Random Forest classifier - RF')
         param_grid = [{
             # RandomForestClassifier
             "feature_scaling__num__scaler"    : ["passthrough", MinMaxScaler(), StandardScaler()],
@@ -197,7 +204,7 @@ class ParamGridsImpl(abc.ABC):
         }]
         return [{
             "name"          : "RF"
-        ,   "iterations"    : 200
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
         

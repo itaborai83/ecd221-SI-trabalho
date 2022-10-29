@@ -9,6 +9,7 @@ from telchurn.data_loader import DataLoader
 from telchurn.pipeline_factory import PipelineFactory
 from telchurn.hyper_param_tunner import HyperParamTunner
 from telchurn.param_grids import ParamGridsImpl
+from telchurn.grid_repository import GridRepository
 
 LOGGER = util.get_logger('trainer')
 
@@ -25,10 +26,11 @@ class TrainerImpl(abc.ABC):
     
     TARGET_VARIABLE = "churn"
     
-    def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner):
+    def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner, repo: GridRepository):
         self.data_loader = data_loader
         self.pipeline_factory = pipeline_factory
         self.hp_tunner = hp_tunner
+        self.repo = repo
     
     def get_param_grids(self):
         return ParamGridsImpl().get_parameter_grids()
@@ -53,6 +55,9 @@ class TrainerImpl(abc.ABC):
             ,   X_train_df      = X_train_df
             ,   y_train_df      = y_train_df
             )
+            
+            grid_name = name + ".pkl"
+            self.repo.save_grid(rand_search_cv, grid_name)
         
     def __train_test_split(self, churn_df, seed: int, test_split_pct: float) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         LOGGER.info('splitting data set into train and test sets')
@@ -73,4 +78,3 @@ class TrainerImpl(abc.ABC):
         y_train_df = pd.DataFrame(y_train, columns=[self.TARGET_VARIABLE])
         y_test_df = pd.DataFrame(y_test, columns=[self.TARGET_VARIABLE])
         return X_train_df, X_test_df, y_train_df, y_test_df
-
