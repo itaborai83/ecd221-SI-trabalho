@@ -2,6 +2,7 @@
 import abc
 import os.path
 import pickle
+import math
 from itertools import combinations
 from typing import Tuple, List, Dict
 import pandas as pd
@@ -41,7 +42,8 @@ class EnsemblerImpl(Ensembler):
     def compute_estimator_weights(self, grids: List[RandomizedSearchCV]) -> List[Tuple[RandomizedSearchCV, float]]:
         LOGGER.info('computing estimator weights')
         result = list([ 
-            (grid.best_estimator_, grid.best_score_) 
+            #(grid.best_estimator_, grid.best_score_) 
+            (grid.best_estimator_, math.exp(grid.best_score_))
             for grid in grids 
         ])
         result.sort(key=lambda x: x[1])
@@ -68,7 +70,7 @@ class EnsemblerImpl(Ensembler):
         best_estimator      = None
         best_voting_type    = None
         util.silence_warnings()
-        for voting_type in ['hard', 'soft']:
+        for voting_type in ['soft', 'hard']:
             for num_estimators in num_combined_estimators:
                 for comb_estimators_weights in combinations(estimators_and_weights, num_estimators):
                     # https://stackoverflow.com/questions/13635032/what-is-the-inverse-function-of-zip-in-python
