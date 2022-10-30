@@ -1,4 +1,7 @@
 import io
+import os
+import sys
+import warnings
 import logging
 import datetime as dt
 
@@ -14,7 +17,13 @@ def report_df(logger, df):
     df.info(verbose=True, buf=buffer)
     buffer.seek(0)
     logger.info(buffer.read())
-        
+
+def silence_warnings():
+    # to silence warnings of subprocesses
+    if not sys.warnoptions:
+        warnings.simplefilter("ignore")
+        os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
+    
 def shallow_equality_test(self, other, attrs):
     for attr in attrs:
         if not hasattr(self, attr) or not hasattr(other, attr):
@@ -56,3 +65,5 @@ def escape_sql_value(value):
         escaped_value = value.strip().replace("'", "''")
         escaped_value = "'" + escaped_value  + "'"
         return escaped_value
+        
+        

@@ -1,31 +1,47 @@
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import abc
 import argparse
 from telchurn.data_loader import DataLoader, DataLoaderImpl
-from telchurn.feature_processor import FeatureProcessor, FeatureProcessorImpl
-from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
-from telchurn.feature_selector import FeatureSelector, FeatureSelectorImpl
-from telchurn.pipeline_factory import PipelineFactory, PipelineFactoryImpl
-from telchurn.hyper_param_tunner import HyperParamTunner, HyperParamTunnerImpl
 from telchurn.grid_repository import GridRepository, GridRepositoryImpl
-import telchurn.param_grids as param_grids
-from telchurn.trainer import Trainer, TrainerImpl
+from telchurn.ensembler import Ensembler, EnsemblerImpl
+from telchurn.trainer import Trainer
+from telchurn.hyper_param_tunner import HyperParamTunner
 import telchurn.util as util
 
-from telchurn.data_loader import DataLoader
+LOGGER = util.get_logger('ensembler')
 
-LOGGER = util.get_logger('train')
+class App:
+
+    def __init__(self, data_loader: DataLoader, repo: GridRepository, ensembler: Ensembler):
+        self.data_loader = data_loader
+        self.repo = repo
+        self.ensembler = ensembler
+    
+    def read_grids(self):
+        LOGGER.info('reading saved grids')
+        grids = []
+        for grid_name in self.repo.list_grids():
+            grid = self.repo.load_grid(grid_name)
+            grids.append(grid)
+        return grids
+        
+    def run(self, input_file_or_url: str, seed: int, test_split_pct: float) -> None:
+        LOGGER.info('starting ensembler')
+        grids = self.read_grids()
+        churn_df = self.data_loader.load_cleansed(input_file_or_url)
+        util.report_df(LOGGER, churn_df)
+        X_train_df, X_test_df, y_train_df, y_test_df = Trainer.train_test_split(churn_df, seed, test_split_pct)
+        voting_classifier = self.ensembler.ensemble_models(grids, y_train_df, X_test_df, y_test_df)
         
 def main(input_file: str, seed: int, testsplit: float, kfolds: int, metric: str, model_dir: str, quick: bool):
     if quick:
         LOGGER.warn('activating quick run mode')
         param_grids.QUICK_RUN = True
     data_loader = DataLoaderImpl()
-    pipeline_factory = PipelineFactoryImpl()
-    hp_tunner = HyperParamTunnerImpl(kfolds, seed)
-    grid_repo = GridRepositoryImpl(model_dir)
-    trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner, grid_repo)
-    trainer.train(input_file, seed, testsplit, kfolds, metric)
+    repo = GridRepositoryImpl(model_dir)
+    ensembler = EnsemblerImpl()
+    app = App(data_loader, repo, ensembler)
+    app.run(input_file, seed, testsplit)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

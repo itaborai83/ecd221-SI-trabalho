@@ -29,14 +29,14 @@ from sklearn.ensemble import GradientBoostingClassifier
 LOGGER = util.get_logger('param_grids')
 
 QUICK_RUN   = False
-USE_LOGREG = True
+USE_LOGREG  = True
 USE_KNN     = True
 USE_NB      = True
-USE_DT      = False # True
-USE_SVM     = False # True
-USE_ADA     = False # True
-USE_GB      = False # True
-USE_RF      = False # True
+USE_DT      = True
+USE_SVM     = True
+USE_ADA     = True
+USE_GB      = True
+USE_RF      = True
 
 class ParamGrids(abc.ABC):
     

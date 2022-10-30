@@ -62,8 +62,6 @@ class DataLoaderImpl(DataLoader):
         LOGGER.info(f'loading cleansed dataframe from {file_name_or_url}')
         churn_df = pd.read_csv(
             file_name_or_url
-        ,   names     = self.IMPORT_COLUMN_NAMES
-        ,   skiprows  = 1
         ,   delimiter = self.DELIMITER
         )
         return churn_df

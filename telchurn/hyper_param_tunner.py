@@ -37,13 +37,7 @@ class HyperParamTunnerImpl(HyperParamTunner):
         ,   shuffle       = True
         ,   random_state  = random_seed
         )     
-    
-    def __silence_subprocesses(self):
-        # to silence warnings of subprocesses
-        if not sys.warnoptions:
-            warnings.simplefilter("ignore")
-            os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
-            
+                
     def tune(self, pipeline: Pipeline, param_grid: List[Dict], grid_name: str, num_iterations: int, scoring_metric: str, X_train_df: pd.DataFrame, y_train_df: pd.DataFrame) -> Tuple[RandomizedSearchCV, pd.DataFrame]:
         LOGGER.info(f'tunning pipeline {grid_name} using scoring metric {scoring_metric}')
         grid = RandomizedSearchCV(
@@ -55,7 +49,7 @@ class HyperParamTunnerImpl(HyperParamTunner):
         ,   return_train_score  = False
         )
         warnings.filterwarnings("ignore")
-        self.__silence_subprocesses()
+        util.silence_warnings()
         grid.fit(X_train_df, y_train_df)
         LOGGER.info(f'Best {scoring_metric}: {grid.best_score_}')
         LOGGER.info(f'Best estimator: {grid.best_score_} -> {grid.best_estimator_}')
