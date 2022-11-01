@@ -7,14 +7,14 @@ from itertools import combinations
 from typing import Tuple, List, Dict
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, fbeta_score, confusion_matrix
 from mlxtend.classifier import EnsembleVoteClassifier
 import telchurn.util as util
 
 LOGGER = util.get_logger('ensembler')
 
 class Ensembler(abc.ABC):
-    
+        
     @abc.abstractmethod
     def ensemble_models(self, grids: List[RandomizedSearchCV], y_train_df: pd.DataFrame, X_test_df: pd.DataFrame, y_test_df: pd.DataFrame) -> EnsembleVoteClassifier:
         raise NotImplementedError
@@ -25,7 +25,8 @@ class EnsemblerImpl(Ensembler):
      # soft voting é aquele no qual o estimador com mais "certeza" sobre a classificação vence
     VOTING_TYPE     = 'soft'
     MIN_ESTIMATORS  = 1
-    
+    BETA = 2.0    
+
     def __init__(self):
         self.top10_scores = [(0.0, 0, "")] * 10
     
@@ -43,20 +44,15 @@ class EnsemblerImpl(Ensembler):
         LOGGER.info('computing estimator weights')
         result = list([ 
             #(grid.best_estimator_, grid.best_score_) 
-            (grid.best_estimator_, math.exp(grid.best_score_))
+            (grid.best_estimator_, math.exp(1.0+grid.best_score_))
             for grid in grids 
         ])
         result.sort(key=lambda x: x[1])
         return result
-
-    def compute_weights(self, estimator):
-        logger.info('computing estimator scores', X_test_df, y_test_df)
-        y_test_hat          = estimator.predict(X_test_df)
-        train_score         = recall_score(y_test, y_test_hat)
-        return train_score
     
     def compute_score(self, estimator, X_test_df, y_test):
       y_test_hat = estimator.predict(X_test_df)
+      #train_score = fbeta_score(y_test, y_test_hat, beta=self.BETA)
       train_score = f1_score(y_test, y_test_hat)
       return train_score
       
@@ -84,7 +80,7 @@ class EnsemblerImpl(Ensembler):
                     )
                     classifier.fit(None, y_train_df) # nenhum dado é necessário pois fit_base_estimators=False
                     score = self.compute_score(classifier, X_test_df, y_test_df)
-                    if score >= best_score:
+                    if score > best_score:
                         best_score          = score
                         best_estimator      = classifier
                         best_voting_type    = voting_type
@@ -94,5 +90,16 @@ class EnsemblerImpl(Ensembler):
         for clf in best_estimator.clfs:
             LOGGER.info(f"\t{clf}")
         LOGGER.info(f"estimators weights: {classifier.weights}")
+        y_test_hat      = best_estimator.predict(X_test_df)
+        conf_matrix     = confusion_matrix(y_test_df, y_test_hat)
+        true_positive   = conf_matrix[0][0]
+        false_negative  = conf_matrix[0][1]
+        false_positive  = conf_matrix[1][0]
+        true_negative   = conf_matrix[1][1]
+        LOGGER.info(f"confusion matrix: ") 
+        LOGGER.info(f"\tTrue Positive   : {true_positive}") 
+        LOGGER.info(f"\tFalse Negative  : {false_negative}") 
+        LOGGER.info(f"\tFalse Positve   : {false_positive}") 
+        LOGGER.info(f"\tTrue Negative   : {true_negative}") 
         return best_estimator
   

@@ -33,10 +33,12 @@ USE_LOGREG  = True
 USE_KNN     = True
 USE_NB      = True
 USE_DT      = True
-USE_SVM     = True
+USE_SVM     = False
 USE_ADA     = True
 USE_GB      = True
 USE_RF      = True
+
+
 
 class ParamGrids(abc.ABC):
     
@@ -130,6 +132,7 @@ class ParamGridsImpl(abc.ABC):
             "classifier__criterion"         : ["gini", "entropy"],
             "classifier__splitter"          : ["best", "random"],
             "classifier__max_features"      : [None, "auto", "sqrt", "log2"],
+            "classifier__max_depth"         : [10, 25, 50]
         }]
         return [{
             "name"          : "DT"
@@ -142,11 +145,16 @@ class ParamGridsImpl(abc.ABC):
         param_grid = param_grid = [{
             # SVC        
             "feature_scaling__num__scaler"  : [MinMaxScaler(), StandardScaler()], # SVC precisa ter os argumentos escalonados para uma melhor performance
-            "reduce_dim"                    : ["passthrough", PCA(n_components=3), PCA(n_components=5)],
+            #"reduce_dim"                    : ["passthrough", PCA(n_components=3), PCA(n_components=5)],
+            "reduce_dim"                    : [PCA(n_components=3), PCA(n_components=5), PCA(n_components=7)],
             "classifier"                    : [SVC(probability=True)],
             "classifier__kernel"            : ["linear","rbf"],
             "classifier__gamma"             : ["scale", "auto"],
-            "classifier__class_weight"      : ["balanced"],
+            "classifier__class_weight"      : [None, "balanced"],
+            "classifier__tol"               : [1e-2],
+            "classifier__C"                 : [1, 0.5, 0.1],
+            #"classifier__max_iter"          : [1000],
+
         }]
         return [{
             "name"          : "SVM"
@@ -196,11 +204,12 @@ class ParamGridsImpl(abc.ABC):
             "feature_scaling__num__scaler"    : ["passthrough", MinMaxScaler(), StandardScaler()],
             "reduce_dim"                      : ["passthrough"], #PCA(n_components=5), PCA(n_components=10)],
             "classifier"                      : [RandomForestClassifier()],
-            "classifier__n_estimators"        : [50, 100, 150],
+            "classifier__n_estimators"        : [50, 100, 150, 200],
             "classifier__criterion"           : ["gini", "entropy"],
             "classifier__bootstrap"           : [True, False],
             "classifier__n_jobs"              : [-1],
             "classifier__class_weight"        : ["balanced", "balanced_subsample"],
+            "classifier__max_depth"           : [5, 10, 25]
         }]
         return [{
             "name"          : "RF"

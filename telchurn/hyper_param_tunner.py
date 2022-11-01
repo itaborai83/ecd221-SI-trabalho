@@ -47,11 +47,12 @@ class HyperParamTunnerImpl(HyperParamTunner):
         ,   cv                  = self.kfold
         ,   n_iter              = num_iterations
         ,   return_train_score  = False
+        ,   n_jobs              = -1
         )
         warnings.filterwarnings("ignore")
         util.silence_warnings()
         grid.fit(X_train_df, y_train_df)
         LOGGER.info(f'Best {scoring_metric}: {grid.best_score_}')
-        LOGGER.info(f'Best estimator: {grid.best_score_} -> {grid.best_estimator_}')
+        LOGGER.info(f'Best estimator: -> \n{grid.best_estimator_}')
         results_df = pd.DataFrame(grid.cv_results_)
         return grid, results_df

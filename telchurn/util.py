@@ -22,7 +22,7 @@ def silence_warnings():
     # to silence warnings of subprocesses
     if not sys.warnoptions:
         warnings.simplefilter("ignore")
-        os.environ["PYTHONWARNINGS"] = "ignore::UserWarning"
+        os.environ["PYTHONWARNINGS"] = "ignore::UserWarning,ignore::FutureWarning   "
     
 def shallow_equality_test(self, other, attrs):
     for attr in attrs:

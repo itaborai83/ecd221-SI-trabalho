@@ -4,6 +4,9 @@ import pandas as pd
 from typing import Tuple, List
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
+#from imblearn.over_sampling import RandomOverSampler
+from sklearn.metrics import make_scorer, fbeta_score
+
 import telchurn.util as util
 from telchurn.data_loader import DataLoader
 from telchurn.pipeline_factory import PipelineFactory
@@ -18,7 +21,7 @@ class Trainer(abc.ABC):
     DEFAULT_TEST_PCT_SIZE   = 0.3 # 30% do conjunto de dados
     DEFAULT_RANDOM_STATE    = 42
     TARGET_VARIABLE         = "churn"
-    
+        
     @classmethod
     def train_test_split(klass, churn_df, seed: int, test_split_pct: float) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         LOGGER.info('splitting data set into train and test sets')
@@ -33,6 +36,10 @@ class Trainer(abc.ABC):
         ,   random_state  = seed
         ,   stratify      = y # com estratificação
         )
+        
+        #ros = RandomOverSampler(random_state=seed)
+        #X_train_resampled, y_train_resampled = ros.fit_resample(X_train, y_train)
+
         X_train_df = pd.DataFrame(X_train, columns=X_df.columns)
         X_test_df = pd.DataFrame(X_test, columns=X_df.columns)
         y_train_df = pd.DataFrame(y_train, columns=[klass.TARGET_VARIABLE])
@@ -43,7 +50,9 @@ class Trainer(abc.ABC):
     def train(self, input_file : str, seed: int, test_split_pct: float, k_folds: float) -> None:
         raise NotImplementedError
         
-class TrainerImpl(abc.ABC):
+class TrainerImpl(Trainer):
+    
+    SCORING_METHOD = "recall"
     
     def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner, repo: GridRepository):
         self.data_loader = data_loader
@@ -53,8 +62,8 @@ class TrainerImpl(abc.ABC):
     
     def get_param_grids(self):
         return ParamGridsImpl().get_parameter_grids()
-    
-    def train(self, input_file: str, seed: int, test_split_pct: float, k_folds: float, metric: str) -> None:
+
+    def train(self, input_file: str, seed: int, test_split_pct: float, k_folds: float) -> None:
         LOGGER.info('starting telco churn model training')
         churn_df = self.data_loader.load_cleansed(input_file)
         util.report_df(LOGGER, churn_df)
@@ -70,7 +79,7 @@ class TrainerImpl(abc.ABC):
             ,   param_grid      = grid
             ,   grid_name       = name
             ,   num_iterations  = iterations
-            ,   scoring_metric  = metric
+            ,   scoring_metric  = self.SCORING_METHOD
             ,   X_train_df      = X_train_df
             ,   y_train_df      = y_train_df
             )
