@@ -12,7 +12,7 @@ from telchurn.data_loader import DataLoader
 from telchurn.pipeline_factory import PipelineFactory
 from telchurn.hyper_param_tunner import HyperParamTunner
 from telchurn.param_grids import ParamGridsImpl
-from telchurn.grid_repository import GridRepository
+from telchurn.model_repository import ModelRepository
 
 LOGGER = util.get_logger('trainer')
 
@@ -54,7 +54,7 @@ class TrainerImpl(Trainer):
     
     SCORING_METHOD = "recall"
     
-    def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner, repo: GridRepository):
+    def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner, repo: ModelRepository):
         self.data_loader = data_loader
         self.pipeline_factory = pipeline_factory
         self.hp_tunner = hp_tunner

@@ -7,8 +7,9 @@ from itertools import combinations
 from typing import Tuple, List, Dict
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import f1_score, fbeta_score, confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from mlxtend.classifier import EnsembleVoteClassifier
+from telchurn.trainer import Trainer
 import telchurn.util as util
 
 LOGGER = util.get_logger('ensembler')
@@ -16,7 +17,7 @@ LOGGER = util.get_logger('ensembler')
 class Ensembler(abc.ABC):
         
     @abc.abstractmethod
-    def ensemble_models(self, grids: List[RandomizedSearchCV], y_train_df: pd.DataFrame, X_test_df: pd.DataFrame, y_test_df: pd.DataFrame) -> EnsembleVoteClassifier:
+    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame, seed: int, test_split_pct: float) -> EnsembleVoteClassifier:
         raise NotImplementedError
     
         
@@ -25,7 +26,6 @@ class EnsemblerImpl(Ensembler):
      # soft voting é aquele no qual o estimador com mais "certeza" sobre a classificação vence
     VOTING_TYPE     = 'soft'
     MIN_ESTIMATORS  = 1
-    BETA = 2.0    
 
     def __init__(self):
         self.top10_scores = [(0.0, 0, "")] * 10
@@ -38,7 +38,7 @@ class EnsemblerImpl(Ensembler):
         for i, (score, num_estimators, voting_type) in enumerate(self.top10_scores):
             if num_estimators == 0:
                 continue
-            LOGGER.info(f"\t{i+1} - {score} with {num_estimators} estimators with {voting_type} voting")
+            LOGGER.info(f"\t{i+1} - {score} with {num_estimators} estimators and {voting_type} voting")
     
     def compute_estimator_weights(self, grids: List[RandomizedSearchCV]) -> List[Tuple[RandomizedSearchCV, float]]:
         LOGGER.info('computing estimator weights')
@@ -52,12 +52,35 @@ class EnsemblerImpl(Ensembler):
     
     def compute_score(self, estimator, X_test_df, y_test):
       y_test_hat = estimator.predict(X_test_df)
-      #train_score = fbeta_score(y_test, y_test_hat, beta=self.BETA)
       train_score = f1_score(y_test, y_test_hat)
       return train_score
-      
-    def ensemble_models(self, grids: List[RandomizedSearchCV], y_train_df: pd.DataFrame, X_test_df: pd.DataFrame, y_test_df: pd.DataFrame) -> EnsembleVoteClassifier:
-        top10_scores = [0.0] * 10
+    
+    def report_results(self, estimator, X, y):
+        y_hat           = estimator.predict(X)
+        # Confusion matrix whose i-th row and j-th column entry indicates the number of 
+        # samples with true label being i-th class and predicted label being j-th class.
+        accuracy        = accuracy_score(y, y_hat)
+        precision       = precision_score(y, y_hat)
+        recall          = recall_score(y, y_hat)
+        f1              = f1_score(y, y_hat)
+        conf_matrix     = confusion_matrix(y, y_hat)
+        true_negative   = conf_matrix[0][0]
+        false_positive  = conf_matrix[0][1]
+        false_negative  = conf_matrix[1][0]
+        true_positive   = conf_matrix[1][1]
+        
+        LOGGER.info(f"accuracy score   : {accuracy}")
+        LOGGER.info(f"precision score  : {precision}")
+        LOGGER.info(f"recall score     : {recall}")
+        LOGGER.info(f"f1 score         : {f1}")
+        LOGGER.info(f"confusion matrix") 
+        LOGGER.info(f"\tTrue  Negative : {true_negative}") 
+        LOGGER.info(f"\tFalse Positive : {false_positive}") 
+        LOGGER.info(f"\tFalse Negative : {false_negative}") 
+        LOGGER.info(f"\tTrue  Positive : {true_positive}") 
+        
+    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame, seed: int, test_split_pct: float) -> EnsembleVoteClassifier:
+        X_train_df, X_test_df, y_train_df, y_test_df = Trainer.train_test_split(churn_df, seed, test_split_pct)        
         estimators_and_weights = self.compute_estimator_weights(grids)
         total_estimators = len(estimators_and_weights)
         assert self.MIN_ESTIMATORS <= total_estimators
@@ -90,16 +113,19 @@ class EnsemblerImpl(Ensembler):
         for clf in best_estimator.clfs:
             LOGGER.info(f"\t{clf}")
         LOGGER.info(f"estimators weights: {classifier.weights}")
-        y_test_hat      = best_estimator.predict(X_test_df)
-        conf_matrix     = confusion_matrix(y_test_df, y_test_hat)
-        true_positive   = conf_matrix[0][0]
-        false_negative  = conf_matrix[0][1]
-        false_positive  = conf_matrix[1][0]
-        true_negative   = conf_matrix[1][1]
-        LOGGER.info(f"confusion matrix: ") 
-        LOGGER.info(f"\tTrue Positive   : {true_positive}") 
-        LOGGER.info(f"\tFalse Negative  : {false_negative}") 
-        LOGGER.info(f"\tFalse Positve   : {false_positive}") 
-        LOGGER.info(f"\tTrue Negative   : {true_negative}") 
+        LOGGER.info("Train Results")
+        self.report_results(best_estimator, X_train_df, y_train_df)
+        LOGGER.info("Test Results")
+        self.report_results(best_estimator, X_test_df, y_test_df)
+        
+        LOGGER.info('refiting base classifiers on whole data set')
+        X = pd.concat([X_train_df, X_test_df])
+        y = pd.concat([y_train_df, y_test_df])
+        for clf in best_estimator.clfs:
+            clf.fit(X, y)
+        best_estimator.fit(None, y) # nenhum dado é necessário pois fit_base_estimators=False
+        LOGGER.warn("Whole data set results (has data leakage)")
+        self.report_results(best_estimator, X, y)
         return best_estimator
   
+

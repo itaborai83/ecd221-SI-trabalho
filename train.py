@@ -7,7 +7,7 @@ from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
 from telchurn.feature_selector import FeatureSelector, FeatureSelectorImpl
 from telchurn.pipeline_factory import PipelineFactory, PipelineFactoryImpl
 from telchurn.hyper_param_tunner import HyperParamTunner, HyperParamTunnerImpl
-from telchurn.grid_repository import GridRepository, GridRepositoryImpl
+from telchurn.model_repository import ModelRepository, ModelRepositoryImpl
 import telchurn.param_grids as param_grids
 from telchurn.trainer import Trainer, TrainerImpl
 import telchurn.util as util
@@ -23,8 +23,8 @@ def main(input_file: str, seed: int, testsplit: float, kfolds: int, model_dir: s
     data_loader = DataLoaderImpl()
     pipeline_factory = PipelineFactoryImpl()
     hp_tunner = HyperParamTunnerImpl(kfolds, seed)
-    grid_repo = GridRepositoryImpl(model_dir)
-    trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner, grid_repo)
+    repo = ModelRepositoryImpl(model_dir)
+    trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner, repo)
     trainer.train(input_file, seed, testsplit, kfolds)
     
 if __name__ == '__main__':

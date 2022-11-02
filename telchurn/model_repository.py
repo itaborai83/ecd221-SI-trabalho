@@ -6,10 +6,11 @@ import pickle
 from typing import Tuple, List, Dict
 import pandas as pd
 import telchurn.util as util
+from mlxtend.classifier import EnsembleVoteClassifier
 
-LOGGER = util.get_logger('grid_repository')
+LOGGER = util.get_logger('model_repository')
 
-class GridRepository(abc.ABC):
+class ModelRepository(abc.ABC):
     
     @abc.abstractmethod
     def save_grid(self, grid: Dict, file_name: str) -> None:
@@ -18,8 +19,16 @@ class GridRepository(abc.ABC):
     @abc.abstractmethod
     def load_grid(self, file_name: str) -> Dict:
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def save_final_model(self, model: EnsembleVoteClassifier, file_name: str) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def load_final_model(self, file_name: str) -> EnsembleVoteClassifier:
+        raise NotImplementedError
         
-class GridRepositoryImpl(GridRepository):
+class ModelRepositoryImpl(ModelRepository):
     
     GRID_PREFIX = "grid_"
     GRID_GLOB = "grid_*.pkl"
@@ -62,3 +71,15 @@ class GridRepositoryImpl(GridRepository):
         grid.best_estimator_  = data["best_estimator_"]
         grid.cv_results_      = data["cv_results_"]
         return grid
+    
+    def save_final_model(self, model: EnsembleVoteClassifier, file_name: str) -> None:
+        path = os.path.join(self.repo_dir, file_name)
+        LOGGER.info(f'saving final model to {path}')
+        with open(path, "wb") as fh:
+            pickle.dump(model, fh)
+
+    def load_final_model(self, file_name: str) -> EnsembleVoteClassifier:
+        path = os.path.join(self.repo_dir, file_name)
+        LOGGER.info(f'loading final model from {path}')
+        with open(path, "rb") as fh:
+            return pickle.load(fh)
