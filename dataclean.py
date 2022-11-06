@@ -1,6 +1,7 @@
  # -*- coding: utf-8 -*-
 import abc
 import argparse
+from typing import List
 from telchurn.data_loader import DataLoader, DataLoaderImpl
 from telchurn.feature_processor import FeatureProcessor, FeatureProcessorImpl
 from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
@@ -12,7 +13,7 @@ from telchurn.data_loader import DataLoader
 
 LOGGER = util.get_logger('dataclean')
         
-def main(input_file: str, output_file: str, topk: int, seed: int):
+def main(input_file: str, output_file: str, topk: int, seed: int, fields: List[str]):
     data_loader = DataLoaderImpl()
     feature_processor = FeatureProcessorImpl(seed)
     feature_ranker = FeatureRankerImpl(seed)
@@ -24,7 +25,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, help='number of features to keep', default=DataCleaner.DEFAULT_SEED)
     parser.add_argument('--topk', type=int, help='number of features to keep', default=DataCleaner.DEFAULT_TOP_K_FEATURES)
+    parser.add_argument('--fields', type=str, help='comma separated list of columns to be kept', default=None)
     parser.add_argument('input_file', type=str, help='input file name or url')
     parser.add_argument('output_file', type=str, help='output file name')
     args = parser.parse_args()
-    main(args.input_file, args.output_file, args.topk, args.seed)
+    main(args.input_file, args.output_file, args.topk, args.seed, args.fields)

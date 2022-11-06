@@ -39,12 +39,6 @@ class FeatureRankerImpl(FeatureRanker):
         LOGGER.info('fitting random forest classifier')
         classifier.fit(X_df, y)
         
-        #with open(FEATURE_IMPORTANCE_MODEL_FILE, "wb") as fh:
-        #    pickle.dump(classifier, fh)
-        #else:
-        #  with open(FEATURE_IMPORTANCE_MODEL_FILE, "rb") as fh:
-        #    classifier = pickle.load(fh)
-
         importances_df = pd.DataFrame({
             "feature"       : X_df.columns
         ,   "importance"    : classifier.feature_importances_

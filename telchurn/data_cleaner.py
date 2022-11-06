@@ -29,7 +29,7 @@ class DataCleanerImpl(DataCleaner):
         self.feature_processor = feature_processor
         self.feature_selector = feature_selector
         
-    def clean(self, input_file_name_or_url: str, output_file_name_or_url: str, top_k_features: int=None) -> None:
+    def clean(self, input_file_name_or_url: str, output_file_name_or_url: str, top_k_features: int=None, fields:str=None) -> None:
         if top_k_features is None:
             top_k_features = self.DEFAULT_TOP_K_FEATURES        
         LOGGER.info(f'starting data cleaner')
@@ -54,7 +54,11 @@ class DataCleanerImpl(DataCleaner):
         
         churn_df = self.feature_processor.handle_categorical_features(churn_df)
         churn_df = self.feature_processor.engineer_features(churn_df)
-        churn_df = self.feature_selector.select_features(top_k_features, self.TARGET_VARIABLE, churn_df)
+        if fields is None:
+            churn_df = self.feature_selector.select_features(top_k_features, self.TARGET_VARIABLE, churn_df)
+        else:
+            column_names = fields.split(',')
+            churn_df = churn_df[column_names]
         self.save_cleansed(output_file_name_or_url, churn_df)
     
     def save_cleansed(self, file_name_or_url: str, churn_df: pd.DataFrame) -> None:
