@@ -53,6 +53,9 @@ class FeatureProcessorImpl(FeatureProcessor):
     # ruído a ser adicionado para evitar overfitting e fazer as variáveis novas parecerem numéricas
     NOISE_STD = 0.1
     
+    def __init__(self, seed):
+        self.seed = seed
+        
     def handle_categorical_features(self, churn_df: pd.DataFrame) -> pd.DataFrame:
         LOGGER.info('handling categorical features')
         # copia o data frame para não estragar os dados originais
@@ -122,6 +125,7 @@ class FeatureProcessorImpl(FeatureProcessor):
     
     def engineer_features(self, churn_df: pd.DataFrame) -> pd.DataFrame:
         LOGGER.info('engineering new features')
+        np.random.seed(self.seed)
         churn_df = churn_df.copy()
         
         # o primeiro quartil da variável tenure conforme análise univariada anterior.

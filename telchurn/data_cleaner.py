@@ -14,6 +14,7 @@ LOGGER = util.get_logger('data_loader')
 class DataCleaner(abc.ABC):
     
     DEFAULT_TOP_K_FEATURES  = 16
+    DEFAULT_SEED = 42
     
     @abc.abstractmethod
     def clean(self, input_file_name_or_url: str, output_file_name_or_url: str, top_k_features: int=None) -> None:
