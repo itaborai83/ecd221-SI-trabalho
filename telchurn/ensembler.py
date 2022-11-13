@@ -9,8 +9,8 @@ import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import accuracy_score, precision_score, recall_score, balanced_accuracy_score, f1_score, confusion_matrix
 from mlxtend.classifier import EnsembleVoteClassifier
+from telchurn.data_splitter import DataSplitter
 from telchurn.model_evaluator import ModelEvaluator
-from telchurn.trainer import Trainer
 import telchurn.util as util
 
 LOGGER = util.get_logger('ensembler')
@@ -18,16 +18,16 @@ LOGGER = util.get_logger('ensembler')
 class Ensembler(abc.ABC):
         
     @abc.abstractmethod
-    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame, seed: int, test_split_pct: float) -> EnsembleVoteClassifier:
+    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame) -> EnsembleVoteClassifier:
         raise NotImplementedError
             
 class EnsemblerImpl(Ensembler):
     
      # soft voting é aquele no qual o estimador com mais "certeza" sobre a classificação vence
-    VOTING_TYPE     = 'soft'
     MIN_ESTIMATORS  = 1
 
-    def __init__(self, evaluator: ModelEvaluator):
+    def __init__(self, splitter: DataSplitter, evaluator: ModelEvaluator):
+        self.splitter = splitter
         self.evaluator = evaluator
         self.top10_scores = [(0.0, 0, "")] * 10
     
@@ -56,8 +56,9 @@ class EnsemblerImpl(Ensembler):
       train_score = balanced_accuracy_score(y_test, y_test_hat)
       return train_score
             
-    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame, seed: int, test_split_pct: float) -> EnsembleVoteClassifier:
-        X_train_df, X_test_df, y_train_df, y_test_df = Trainer.train_test_split(churn_df, seed, test_split_pct)        
+    def ensemble_models(self, grids: List[RandomizedSearchCV], churn_df: pd.DataFrame) -> EnsembleVoteClassifier:
+        target = churn_df.columns[-1]
+        (X_train_df, y_train_df), (X_test_df, y_test_df) = self.splitter.split(churn_df, target) 
         estimators_and_weights = self.compute_estimator_weights(grids)
         total_estimators = len(estimators_and_weights)
         assert self.MIN_ESTIMATORS <= total_estimators
