@@ -2,6 +2,7 @@
 import abc
 import argparse
 from telchurn.data_loader import DataLoader, DataLoaderImpl
+from telchurn.data_splitter import DataSplitter, DataSplitterImpl
 from telchurn.feature_processor import FeatureProcessor, FeatureProcessorImpl
 from telchurn.feature_ranker import FeatureRanker, FeatureRankerImpl
 from telchurn.feature_selector import FeatureSelector, FeatureSelectorImpl
@@ -24,13 +25,14 @@ def main(input_file: str, seed: int, testsplit: float, kfolds: int, model_dir: s
     pipeline_factory = PipelineFactoryImpl()
     hp_tunner = HyperParamTunnerImpl(kfolds, seed)
     repo = ModelRepositoryImpl(model_dir)
+    splitter = DataSplitterImpl(seed, testsplit)
     trainer = TrainerImpl(data_loader, pipeline_factory, hp_tunner, repo)
-    trainer.train(input_file, seed, testsplit, kfolds)
+    trainer.train(input_file, splitter)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed',       type=int,   help='random seed',             default=Trainer.DEFAULT_RANDOM_STATE)
-    parser.add_argument('--testsplit',  type=float, help='test split percentage',   default=Trainer.DEFAULT_TEST_PCT_SIZE)
+    parser.add_argument('--seed',       type=int,   help='random seed',             default=DataSplitter.DEFAULT_RANDOM_STATE)
+    parser.add_argument('--testsplit',  type=float, help='test split percentage',   default=DataSplitter.DEFAULT_TEST_PCT_SIZE)
     parser.add_argument('--kfolds',     type=int,   help='number of k folds',       default=HyperParamTunner.DEFAULT_K_FOLDS)
     parser.add_argument('--quick',      action="store_true", help='quick run', default=False)
     parser.add_argument('input_file',   type=str,   help='input file name')

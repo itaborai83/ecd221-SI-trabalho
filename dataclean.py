@@ -19,7 +19,7 @@ def main(input_file: str, output_file: str, topk: int, seed: int, fields: List[s
     feature_ranker = FeatureRankerImpl(seed)
     feature_selector = FeatureSelectorImpl(feature_ranker)
     data_cleaner = DataCleanerImpl(data_loader, feature_processor, feature_selector)
-    data_cleaner.clean(input_file, output_file, topk)
+    data_cleaner.clean(input_file, output_file, topk, fields)
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

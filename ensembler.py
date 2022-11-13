@@ -6,6 +6,7 @@ from telchurn.model_repository import ModelRepository, ModelRepositoryImpl
 from telchurn.ensembler import Ensembler, EnsemblerImpl
 from telchurn.trainer import Trainer
 from telchurn.hyper_param_tunner import HyperParamTunner
+from telchurn.model_evaluator import ModelEvaluatorImpl
 import telchurn.util as util
 
 LOGGER = util.get_logger('ensembler')
@@ -40,7 +41,8 @@ def main(input_file: str, seed: int, testsplit: float, kfolds: int, model_dir: s
         param_grids.QUICK_RUN = True
     data_loader = DataLoaderImpl()
     repo = ModelRepositoryImpl(model_dir)
-    ensembler = EnsemblerImpl()
+    evaluator = ModelEvaluatorImpl()
+    ensembler = EnsemblerImpl(evaluator)
     app = App(data_loader, repo, ensembler)
     app.run(input_file, seed, testsplit, model_name)
     

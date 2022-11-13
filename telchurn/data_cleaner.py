@@ -17,7 +17,7 @@ class DataCleaner(abc.ABC):
     DEFAULT_SEED = 42
     
     @abc.abstractmethod
-    def clean(self, input_file_name_or_url: str, output_file_name_or_url: str, top_k_features: int=None) -> None:
+    def clean(self, input_file_name_or_url: str, output_file_name_or_url: str, top_k_features: int=None, fields:str=None) -> None:
         raise NotImplementedError
         
 class DataCleanerImpl(DataCleaner):

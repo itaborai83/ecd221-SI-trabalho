@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler, ADASYN, SMOTE
 import telchurn.util as util
 
-
 LOGGER = util.get_logger('data_splitter')
 
 class DataSplitter(abc.ABC):
@@ -75,4 +74,4 @@ class DataSplitterAdasynImpl(DataSplitterImpl):
 
     def _oversample(self, X_train, y_train):
         adasyn = ADASYN(random_state=self.seed)
-        return adasyn.fit_resample(X_train, y_train)        
+        return adasyn.fit_resample(X_train, y_train)
