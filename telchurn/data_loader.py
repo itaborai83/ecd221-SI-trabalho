@@ -64,6 +64,7 @@ class DataLoaderImpl(DataLoader):
             file_name_or_url
         ,   delimiter = self.DELIMITER
         )
+        util.report_df(LOGGER, churn_df)
         return churn_df
 
     

@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Tuple, List
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RandomizedSearchCV
-#from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import ADASYN, SMOTE
 from sklearn.metrics import make_scorer, fbeta_score
 
 import telchurn.util as util
@@ -37,12 +37,18 @@ class Trainer(abc.ABC):
         ,   stratify      = y # com estratificação
         )
         
+        #smote = SMOTE(random_state=seed)
+        #X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+        #adasyn = ADASYN(random_state=seed)
+        #X_train_resampled, y_train_resampled = adasyn.fit_resample(X_train, y_train)
         #ros = RandomOverSampler(random_state=seed)
         #X_train_resampled, y_train_resampled = ros.fit_resample(X_train, y_train)
 
         X_train_df = pd.DataFrame(X_train, columns=X_df.columns)
+        #X_train_df = pd.DataFrame(X_train_resampled, columns=X_df.columns)
         X_test_df = pd.DataFrame(X_test, columns=X_df.columns)
         y_train_df = pd.DataFrame(y_train, columns=[klass.TARGET_VARIABLE])
+        #y_train_df = pd.DataFrame(y_train_resampled, columns=[klass.TARGET_VARIABLE])
         y_test_df = pd.DataFrame(y_test, columns=[klass.TARGET_VARIABLE])
         return X_train_df, X_test_df, y_train_df, y_test_df
         
@@ -52,7 +58,8 @@ class Trainer(abc.ABC):
         
 class TrainerImpl(Trainer):
     
-    SCORING_METHOD = "recall"
+    #SCORING_METHOD = "recall"
+    SCORING_METHOD = "balanced_accuracy"
     
     def __init__(self, data_loader: DataLoader, pipeline_factory: PipelineFactory, hp_tunner: HyperParamTunner, repo: ModelRepository):
         self.data_loader = data_loader

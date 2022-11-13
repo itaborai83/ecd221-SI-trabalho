@@ -51,7 +51,7 @@ class FeatureProcessorImpl(FeatureProcessor):
     BOOLEAN_MAP = {"No": 0, "Yes": 1}
     
     # ruído a ser adicionado para evitar overfitting e fazer as variáveis novas parecerem numéricas
-    NOISE_STD = 0.1
+    NOISE_STD = 0.0
     
     def __init__(self, seed):
         self.seed = seed
