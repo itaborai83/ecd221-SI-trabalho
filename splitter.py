@@ -50,5 +50,3 @@ if __name__ == '__main__':
     ,   args.output_file1
     ,   args.output_file2
     )
-    
-    
