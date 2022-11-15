@@ -169,12 +169,12 @@ class ParamGridsImpl(abc.ABC):
             "feature_scaling__num__scaler"    : ["passthrough", MinMaxScaler(), StandardScaler()],
             "reduce_dim"                      : ["passthrough", PCA(n_components=3), PCA(n_components=5)],
             "classifier"                      : [AdaBoostClassifier()],
-            "classifier__n_estimators"        : [25, 50, 75, 100],
+            "classifier__n_estimators"        : [100, 250, 500],
             "classifier__learning_rate"       : [0.001, 0.01, 0.1, 1.0]
         }]
         return [{
             "name"          : "ADA"
-        ,   "iterations"    : (1000 if not QUICK_RUN else 100)
+        ,   "iterations"    : (200 if not QUICK_RUN else 20)
         ,   "param_grid"    : param_grid
         }]
 

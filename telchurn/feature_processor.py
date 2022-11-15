@@ -50,8 +50,10 @@ class FeatureProcessorImpl(FeatureProcessor):
     
     BOOLEAN_MAP = {"No": 0, "Yes": 1}
     
+    ENABLE_FEATURE_ENGINEERING = False
+
     # ruído a ser adicionado para evitar overfitting e fazer as variáveis novas parecerem numéricas
-    NOISE_STD = 0.0
+    NOISE_STD = 0.0 # zerado por falta de tempo para averiguar se ajudava ou não com overfitting
     
     def __init__(self, seed):
         self.seed = seed
@@ -120,7 +122,7 @@ class FeatureProcessorImpl(FeatureProcessor):
         ,   'payment_method=Mailed check'              : 'mailed_check'
         }
         churn_df.rename(columns=new_column_names, inplace=True)                
-        self.__report(churn_df)
+        util.report_df(LOGGER, churn_df)
         return churn_df
     
     def engineer_features(self, churn_df: pd.DataFrame) -> pd.DataFrame:
@@ -152,7 +154,7 @@ class FeatureProcessorImpl(FeatureProcessor):
         +   np.exp(np.abs(1-churn_df["dependents"]))
         +   np.exp((churn_df["tenure"] < tenure_1st_quartile).astype(float))
         +   np.exp((churn_df["monthly_charges"] > charges_3rd_quartile).astype(float))
-        ) / 3.0 + noise_term)
+        ) / 3.0 + noise_term) * (1.0 if self.ENABLE_FEATURE_ENGINEERING else 0.0)
         
         LOGGER.info('creating internet factor')
         # internet factor
@@ -171,7 +173,7 @@ class FeatureProcessorImpl(FeatureProcessor):
         -   np.exp(churn_df["dsl"]) # dsl=1 diminui a rotatividade
         +   np.exp((churn_df["tenure"] < tenure_1st_quartile).astype(float))
         +   np.exp((churn_df["monthly_charges"] > charges_3rd_quartile).astype(float))
-        ) / 3.0 + noise_term)
+        ) / 3.0 + noise_term) * (1.0 if self.ENABLE_FEATURE_ENGINEERING else 0.0)
         
         LOGGER.info('creating financial factor')
         # financial factor
@@ -186,9 +188,9 @@ class FeatureProcessorImpl(FeatureProcessor):
         +   np.exp(churn_df["paperless_billing"])
         +   np.exp((churn_df["tenure"] < tenure_1st_quartile).astype(float))
         +   np.exp((churn_df["monthly_charges"] > charges_3rd_quartile).astype(float))
-        ) / 3.0 + noise_term)
+        ) / 3.0 + noise_term) * (1.0 if self.ENABLE_FEATURE_ENGINEERING else 0.0)
         
-        LOGGER.info('combineing factors into one')
+        LOGGER.info('combining factors into one')
         # por último, criamos um fator combinando todos usados anteriormente
         noise_term = np.random.normal(loc=0.0, scale=self.NOISE_STD, size=rows)
         churn_df["multi_factor"] = ((
@@ -204,15 +206,9 @@ class FeatureProcessorImpl(FeatureProcessor):
         +   np.exp(churn_df["paperless_billing"])
         +   np.exp((churn_df["tenure"] < tenure_1st_quartile).astype(float))
         +   np.exp((churn_df["monthly_charges"] > charges_3rd_quartile).astype(float))
-        ) / 9.0 + noise_term)
+        ) / 9.0 + noise_term) * (1.0 if self.ENABLE_FEATURE_ENGINEERING else 0.0)
 
         # reposiciona a variável target ao final
         churn_df["churn"] = churn_df.pop("churn")
-        self.__report(churn_df)
+        util.report_df(LOGGER, churn_df)
         return churn_df
-        
-    def __report(self, churn_df: pd.DataFrame) -> None:
-        buffer = io.StringIO()
-        churn_df.info(verbose=True, buf=buffer)
-        buffer.seek(0)
-        LOGGER.info(buffer.read())

@@ -23,6 +23,3 @@ if __name__ == '__main__':
     parser.add_argument('output_file', type=str,   help='output file name')
     args = parser.parse_args()
     main(args.input_file, args.output_file)
-    
-    
-    

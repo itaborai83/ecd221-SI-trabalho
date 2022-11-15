@@ -74,10 +74,11 @@ class EnsemblerImpl(Ensembler):
                     comb_estimators, weights = zip(*comb_estimators_weights)
                     # em versões mais antigas da biblioteca, o parâmetro fit_base_estimators chamava-se refit
                     classifier = EnsembleVoteClassifier(
-                        clfs                = comb_estimators
-                    ,   weights             = weights
-                    ,   voting              = voting_type
+                        clfs                 = comb_estimators
+                    ,   weights              = weights
+                    ,   voting               = voting_type
                     ,   fit_base_estimators = False
+                    #,   refit                = False
                     )
                     classifier.fit(None, y_train_df) # nenhum dado é necessário pois fit_base_estimators=False
                     score = self.compute_score(classifier, X_test_df, y_test_df)
@@ -105,5 +106,3 @@ class EnsemblerImpl(Ensembler):
         LOGGER.warn("Whole data set results (has data leakage)")
         self.evaluator.report_results(best_estimator, X, y)
         return best_estimator
-  
-

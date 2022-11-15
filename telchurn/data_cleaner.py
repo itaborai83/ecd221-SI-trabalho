@@ -9,7 +9,7 @@ from telchurn.feature_processor import FeatureProcessor
 from telchurn.feature_selector import FeatureSelector
 
 
-LOGGER = util.get_logger('data_loader')
+LOGGER = util.get_logger('data_cleaner')
 
 class DataCleaner(abc.ABC):
     

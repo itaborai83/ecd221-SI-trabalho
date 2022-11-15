@@ -48,7 +48,10 @@ class DataSplitterImpl(DataSplitter):
         X_test_df = pd.DataFrame(X_test, columns=X_df.columns)
         y_test_df = pd.DataFrame(y_test, columns=[target])
         return (X_train_df, y_train_df), (X_test_df, y_test_df)
-        
+
+# os data splitters com oversampling abaixo não foram usados pois não 
+# apresentaram ganho significativo de performance e aumentavam o tempo de treino
+
 class DataSplitterOverSamplerImpl(DataSplitterImpl):
 
     def __init__(self, seed: int=None, test_split_pct: float=None):

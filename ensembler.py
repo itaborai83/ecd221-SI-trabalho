@@ -36,10 +36,7 @@ class App:
         self.repo.save_final_model(voting_classifier, model_name)
         
         
-def main(input_file: str, seed: int, testsplit: float, kfolds: int, model_dir: str, quick: bool, model_name: str):
-    if quick:
-        LOGGER.warn('activating quick run mode')
-        param_grids.QUICK_RUN = True
+def main(input_file: str, seed: int, testsplit: float, kfolds: int, model_dir: str, model_name: str):
     data_loader = DataLoaderImpl()
     repo = ModelRepositoryImpl(model_dir)
     evaluator = ModelEvaluatorImpl()
@@ -53,9 +50,8 @@ if __name__ == '__main__':
     parser.add_argument('--seed',       type=int,   help='random seed',             default=DataSplitter.DEFAULT_RANDOM_STATE)
     parser.add_argument('--testsplit',  type=float, help='test split percentage',   default=DataSplitter.DEFAULT_TEST_PCT_SIZE)
     parser.add_argument('--kfolds',     type=int,   help='number of k folds',       default=HyperParamTunner.DEFAULT_K_FOLDS)
-    parser.add_argument('--quick',      action="store_true", help='quick run', default=False)
     parser.add_argument('input_file',   type=str,   help='input file name')
     parser.add_argument('model_dir',    type=str,   help='models output directory')
     parser.add_argument('model_name',   type=str,   help='final model name')
     args = parser.parse_args()
-    main(args.input_file, args.seed, args.testsplit, args.kfolds, args.model_dir, args.quick, args.model_name)
+    main(args.input_file, args.seed, args.testsplit, args.kfolds, args.model_dir, args.model_name)

@@ -60,4 +60,3 @@ class TrainerImpl(Trainer):
             )
             grid_name = name + ".pkl"
             self.repo.save_grid(rand_search_cv, grid_name)
-        

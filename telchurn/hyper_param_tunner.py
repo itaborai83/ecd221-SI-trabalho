@@ -11,7 +11,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 
-LOGGER = util.get_logger('data_loader')
+LOGGER = util.get_logger('hp_tunner')
 
 class HyperParamTunner(abc.ABC):
     

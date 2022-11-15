@@ -1,1 +1,1 @@
-total_charges,monthly_charges,tenure,multi_factor,financial_factor,monthly_contract,internet_factor,client_factor,two_year_contract,online_backup,electronic_check,fiber_optic,multiple_lines,churn
+total_charges,monthly_charges,tenure,monthly_contract,two_year_contract,fiber_optic,electronic_check,paperless_billing,partner,online_security,tech_support,online_backup,dependents,churn

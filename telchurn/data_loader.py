@@ -66,5 +66,3 @@ class DataLoaderImpl(DataLoader):
         )
         util.report_df(LOGGER, churn_df)
         return churn_df
-
-    

@@ -51,4 +51,3 @@ class FeatureRankerImpl(FeatureRanker):
         for feature, importance in result:
             LOGGER.info(f'\t-> {feature}: {importance}')
         return result
-

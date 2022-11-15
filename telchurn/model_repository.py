@@ -6,6 +6,11 @@ import pickle
 from typing import Tuple, List, Dict
 import pandas as pd
 import telchurn.util as util
+# correção de bug na biblioteca que importa uma dependência de maneira indireta
+# https://stackoverflow.com/questions/61867945/python-import-error-cannot-import-name-six-from-sklearn-externals
+import sys
+import six
+sys.modules['sklearn.externals.six'] = six
 from mlxtend.classifier import EnsembleVoteClassifier
 
 LOGGER = util.get_logger('model_repository')
